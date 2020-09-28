@@ -1,3 +1,4 @@
+const e = require('express');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
@@ -5,9 +6,26 @@ const mongoose = require('mongoose');
 const Product = require('../modals/product');
 
 router.get('/', (req, res, next) => {
-    res.status(200).json({
+    Product.find().
+        exec()
+        .then(docs => {
+            if (docs.length >= 0) {
+                console.log(docs);
+                res.status(200).json(docs)
+            } else {
+                res.status(404).json({
+                    message: "No data found"
+                })
+            }
+
+        })
+        .catch(error => {
+            console.error(error)
+            res.status(500).json({ error })
+        })
+    /* res.status(200).json({
         message: 'from products get function'
-    })
+    }) */
 });
 
 router.post('/', (req, res, next) => {
@@ -28,7 +46,10 @@ router.post('/', (req, res, next) => {
         })
         console.log(result)
 
-    }).catch(error => console.error(error))
+    }).catch(error => {
+        console.error(error)
+        res.status(500).json({ error })
+    })
 
 
 
@@ -40,32 +61,57 @@ router.get('/:productId', (req, res, next) => {
     Product.findById(id)
 
         .then(doc => {
-            console.log(doc);
-            res.status(200).json(doc)
+            if (doc) {
+                console.log(doc);
+                res.status(200).json(doc)
+            } else {
+                res.status(404).json({
+                    message: "Id not found"
+                })
+            }
+
 
         })
-        .catch(err => {
+        .catch(error => {
             console.error(error)
-            res.status(500).json({ error: err })
+            res.status(500).json({ error })
         })
 });
 
 
 
-//patch for PUT (update)
+
 router.patch('/:productId', (req, res, next) => {
     const id = req.params.productId;
-    res.status(200).json({
-        id,
-        message: `product id ${id} updated `
-    })
+    const updateOps = {};
+    for (let ops of req.body) {
+        updateOps[ops.propName] = ops.value
+    }
+    Product.update({ _id: id }, { $set: updateOps }).exec()
+        .then(result => {
+            console.log("in patch function:- ", result);
+            if (result.nModified) {
+                res.status(200).json({ message: `id no: ${id} updated successfully!`, result })
+            } else {
+                res.status(404).json({ message: `id no: ${id} could not updated` })
+            }
+        })
+        .catch(error => {
+            res.status(500).json({ error })
+        })
 });
 
 router.delete('/:productId', (req, res, next) => {
     const id = req.params.productId;
-    res.status(200).json({
-        id,
-        message: `product id ${id} deleted `
+    Product.remove({ _id: id }).exec().then(doc => {
+        if (doc) {
+            res.status(200).json({ message: `id no: ${id} removed successfully!`, result: doc })
+        } else {
+            res.status(404).json({ message: `id no: ${id} not deleted` })
+        }
+    }
+    ).catch(error => {
+        res.status(500).json({ error })
     })
 });
 
