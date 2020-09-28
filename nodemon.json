@@ -1,0 +1,5 @@
+{
+    "env": {
+        " process.env.MONGODB_ATLAS_PW ": "devanju"
+    }
+}
