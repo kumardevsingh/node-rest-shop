@@ -2,12 +2,40 @@ const e = require('express');
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        const dateString = "abcd";//new Date().toISOString();
+        cb(null, dateString + "-" + file.originalname)
+
+    }
+})
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+        cb(null, true)
+    } else {
+        cb(true, false)
+    }
+}
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5
+    },
+    fileFilter: fileFilter
+})
 
 const Product = require('../modals/product');
 
 router.get('/', (req, res, next) => {
     Product.find()
-        .select("_id name price")
+        .select("_id name price productImage")
         .exec()
         .then(docs => {
             const response = {
@@ -17,6 +45,7 @@ router.get('/', (req, res, next) => {
                         name: doc.name,
                         price: doc.price,
                         _id: doc._id,
+                        productImage: doc.productImage ? doc.productImage : '',
                         request: {
                             type: 'GET',
                             url: 'http://localhost:3000/products/' + doc._id
@@ -43,15 +72,13 @@ router.get('/', (req, res, next) => {
     }) */
 });
 
-router.post('/', (req, res, next) => {
-    /* const product = {
-        name: req.body.name,
-        price: req.body.price
-    } */
+router.post('/', upload.single('productImage'), (req, res, next) => {
+    console.log(req.file)
     const product = new Product({
         _id: mongoose.Types.ObjectId(),
         name: req.body.name,
-        price: req.body.price
+        price: req.body.price,
+        productImage: req.file.path
 
     });
     product.save().then((result) => {
@@ -82,7 +109,7 @@ router.get('/:productId', (req, res, next) => {
     const id = req.params.productId;
     console.log(id)
     Product.findById(id)
-        .select("_id name price")
+        .select("_id name price productImage")
         .then(doc => {
             if (doc) {
                 console.log(doc);

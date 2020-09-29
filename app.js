@@ -18,7 +18,7 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (res)
 })
 
 app.use(morgan('dev'));
-
+app.use('/uploads', express.static('uploads'))
 app.use(boodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 
