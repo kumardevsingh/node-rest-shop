@@ -3,13 +3,15 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const multer = require('multer');
+const checkAuth = require('../middleware/check-auth')
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')
     },
     filename: function (req, file, cb) {
-        const dateString = "abcd";//new Date().toISOString();
+        const dateString = "nodejs";//new Date().toISOString();
+
         cb(null, dateString + "-" + file.originalname)
 
     }
@@ -72,7 +74,7 @@ router.get('/', (req, res, next) => {
     }) */
 });
 
-router.post('/', upload.single('productImage'), (req, res, next) => {
+router.post('/', checkAuth, upload.single('productImage'), (req, res, next) => {
     console.log(req.file)
     const product = new Product({
         _id: mongoose.Types.ObjectId(),
@@ -81,6 +83,7 @@ router.post('/', upload.single('productImage'), (req, res, next) => {
         productImage: req.file.path
 
     });
+    console.log("auth passed")
     product.save().then((result) => {
         res.status(201).json({
             message: ' Created product successfully',
@@ -137,7 +140,7 @@ router.get('/:productId', (req, res, next) => {
 
 
 
-router.patch('/:productId', (req, res, next) => {
+router.patch('/:productId', checkAuth, (req, res, next) => {
     const id = req.params.productId;
     const updateOps = {};
     for (let ops of req.body) {
@@ -164,7 +167,7 @@ router.patch('/:productId', (req, res, next) => {
         })
 });
 
-router.delete('/:productId', (req, res, next) => {
+router.delete('/:productId', checkAuth, (req, res, next) => {
     const id = req.params.productId;
     Product.remove({ _id: id }).exec().then(doc => {
         if (doc) {
@@ -178,7 +181,7 @@ router.delete('/:productId', (req, res, next) => {
     })
 });
 
-router.put('/:productId', (req, res, next) => {
+router.put('/:productId', checkAuth, (req, res, next) => {
     const id = req.params.productId;
     res.status(200).json({
         id,

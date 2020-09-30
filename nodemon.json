@@ -1,5 +1,6 @@
 {
     "env": {
-        " process.env.MONGODB_ATLAS_PW ": "devanju"
+        " process.env.MONGODB_ATLAS_PW ": "devanju",
+        "JWT_KEY": "secret"
     }
 }

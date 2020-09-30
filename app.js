@@ -7,11 +7,14 @@ const mongoose = require('mongoose');
 
 const produtRouts = require('./api/routes/products');
 const orderRouts = require('./api/routes/order');
+const userRoutes = require('./api/routes/user');
+
 const bodyParser = require('body-parser');
 
 const pwd = process.env.MONGODB_ATLAS_PW;
 const uri = 'mongodb+srv://kumardevsingh:devanju@nodedev.igsft.mongodb.net/products?retryWrites=true&w=majority';
 
+mongoose.set('useCreateIndex', true)
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (res) => {
     console.log("connection done!!")
     console.log(res);
@@ -37,15 +40,12 @@ app.use((req, res, next) => {
 
 app.use('/products', produtRouts);
 app.use('/orders', orderRouts);
+app.use('/user', userRoutes);
 
 
 app.use((req, res, next) => {
     const error = new Error('Not found');
     error.status = 404;
-    //error.name
-    // res.status(404).json({
-    //     message: error.message
-    // })
     next(error)
 });
 
